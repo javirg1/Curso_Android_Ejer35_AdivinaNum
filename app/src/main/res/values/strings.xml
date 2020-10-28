@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Adivina</string>
+    <string name="app_title">Adivina Número</string>
+    <string name="instrucciones">Adivina número entre %d y %d:</string>
+    <string name="btn_jugar">Jugar</string>
+    <string name="btn_nueva_partida">Nueva partida</string>
+
+    <string name="msg_acierto">Acierto! Has obtenido %d puntos</string>
+    <string name="msg_fallo">Fallo!</string>
+    <string name="msg_intentos">Intentos: </string>
+    <string name="msg_error_numero">Datos introducidos incorrectos, revise</string>
+    <string name="msg_numero_no_valido">El número no es válido, revise los límites</string>
+    <string name="msg_record">Record: %d</string>
+
+    <string name="btn_comenzar">Comenzar</string>
+
+    <string name="msg_splash_cargando">Cargando ...</string>
+</resources>
