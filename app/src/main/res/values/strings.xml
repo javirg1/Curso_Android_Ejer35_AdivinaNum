@@ -4,6 +4,7 @@
     <string name="instrucciones">Adivina número entre %d y %d:</string>
     <string name="btn_jugar">Jugar</string>
     <string name="btn_nueva_partida">Nueva partida</string>
+    <string name="btn_gualapop">Visita nuestra web</string>
 
     <string name="msg_acierto">Acierto! Has obtenido %d puntos</string>
     <string name="msg_fallo">Fallo!</string>

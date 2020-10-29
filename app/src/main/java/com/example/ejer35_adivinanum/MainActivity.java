@@ -2,10 +2,12 @@ package com.example.ejer35_adivinanum;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,23 +20,18 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "Ejer35_MainActivity";
-    //Defino dos constantes para los limites maximo y minimo del num a adivinar:
-    private final int LIMITE_MIN = 1;
-    private final int LIMITE_MAX = 100;
-    //Variables para controlar max y min durante una partida concreta:
-    private int partida_min = LIMITE_MIN;
-    private int partida_max = LIMITE_MAX;
-    private int num_aleatorio;
-    private int num_intentos;
-    //Necesito dos variables para llevar la cuenta de puntos de una partida, y el record:
-    private int record_puntos;
 
+    //El controlador va a necesitar un objeto de la clase JAdivina, para lo que es la lógica del juego:
+    private JAdivina juego;
+
+    //Objetos relacionados con el interfaz:
     private TextView tvIntentos;
     private Button btnJugar;
     private EditText etNumJugador;
     private TextView tvResultado;
     private TextView tvInstrucciones;
     private ImageView ivResultado;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,10 +49,14 @@ public class MainActivity extends AppCompatActivity {
         TextView tvRecord = findViewById(R.id.tvRecord);
         ivResultado = findViewById(R.id.ivResultado);
 
+        //Crear el objeto de la clase (instanciar):
+        juego = new JAdivina();
+
         //Cuando arranca la app, leo de las preferencias a ver si tengo guardado un record:
         SharedPreferences taquilla = MainActivity.this.getSharedPreferences("Datos", 0);
-        record_puntos = taquilla.getInt("record_puntos",0);
-        tvRecord.setText(String.format(getString(R.string.msg_record),record_puntos));
+        //record_puntos = taquilla.getInt("record_puntos",0);
+        juego.setRecordPuntos(taquilla.getInt("record_puntos", 0));
+        tvRecord.setText(String.format(getString(R.string.msg_record), juego.getRecordPuntos()));
 
         //Inicializo las variables para comenzar una partida (y además esta función refresca la pantalla):
         nuevaPartida();
@@ -80,34 +81,32 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 //Si llego hasta aquí, ya tengo un número, comprobamos si está en los límites:
-                if (num_jugador>=partida_min && num_jugador<=partida_max) {
-                    //Tengo número válido, ha hecho un intento:
-                    num_intentos++; //Es lo mismo que num_intentos = num_intentos + 1;
+                if (juego.estaEnLosLimites(num_jugador) == true) {
+
                     //Refrescar en pantalla los intentos:
-                    tvIntentos.setText(getString(R.string.msg_intentos) + num_intentos);
-                    //tvIntentos.setText(""+num_intentos); //Otra forma válida
+                    tvIntentos.setText(getString(R.string.msg_intentos) + juego.getIntentos());
 
-
-                    //Comprobar is ha acertado:
-                    if (num_jugador == num_aleatorio) {
+                    //Comprobar si ha acertado:
+                    if (juego.haAcertado(num_jugador) == true) {
+                        //if (num_jugador == num_aleatorio) {
                         //Hacemos el botón jugar invisible, para obligarle a hacer click en nueva partida:
                         btnJugar.setVisibility(View.INVISIBLE);
-                        //Obtengo los puntos de la partida:
-                        int partida_puntos = partida_max - partida_min;
+
                         //Mostrar en pantalla:
-                        String msg_acierto = String.format(getString(R.string.msg_acierto),partida_puntos);
+                        String msg_acierto = String.format(getString(R.string.msg_acierto),
+                                juego.getPartidaPuntos());
                         tvResultado.setText(msg_acierto);
                         //Compruebo si tengo un nuevo record:
-                        if (partida_puntos > record_puntos) {
+                        if (juego.hayNuevoRecord() == true) {
+                            //if (partida_puntos > record_puntos) {
                             //Tengo nuevo record, actualizo la variable y también la pantalla:
-                            record_puntos = partida_puntos;
-                            tvRecord.setText(String.format(getString(R.string.msg_record),record_puntos));
+                            tvRecord.setText(String.format(getString(R.string.msg_record), juego.getRecordPuntos()));
                             //Además lo guardo en las preferencias para que persista:
                             SharedPreferences taquilla = MainActivity.this.getSharedPreferences("Datos", 0);
                             // 0 - for private mode
                             SharedPreferences.Editor editor = taquilla.edit();
                             //Ahora ya guardo variable - valor:
-                            editor.putInt("record_puntos",record_puntos);
+                            editor.putInt("record_puntos", juego.getRecordPuntos());
                             //Aplicamos los cambios:
                             editor.apply(); //Equivalente a editor.commit();
                         }
@@ -116,16 +115,21 @@ public class MainActivity extends AppCompatActivity {
                         //Reproduzco sonido de acierto:
                         MediaPlayer mPlayer = MediaPlayer.create(MainActivity.this, R.raw.sonido_exito);
                         mPlayer.start();
+
+                        //De paso le muestro una pantalla de publi con un pequeño retardo:
+                        Handler retardo = new Handler();
+                        retardo.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                //Saltar a la pantalla Main (La del juego)
+                                Intent nueva_pantalla = new Intent(MainActivity.this, PubliActivity.class);
+                                //Para ejecutar el salto de pantalla:
+                                startActivity(nueva_pantalla);
+                            }
+                        }, 1500);
+
                     } else {
                         tvResultado.setText(R.string.msg_fallo);
-                        //Compruebo si ha cambiado el minimo o el máximo:
-                        if (num_aleatorio < num_jugador) {
-                            //Cambia el máximo:
-                            partida_max = num_jugador;
-                        } else {
-                            //Ya no hay alternativa, cambia el mínimo
-                            partida_min = num_jugador;
-                        }
                         //Actualizar en pantalla los nuevos limites:
                         refrescarLayout();
                         //Cambio el icono por el de fallo:
@@ -152,19 +156,12 @@ public class MainActivity extends AppCompatActivity {
 
     //Aquí acaba el onCreate, a partir de aqui puedo dfinir mas funciones de la clase:
     private void nuevaPartida() {
-        //Aqui ya puedo programar lo que hay que hacer cuando el usuario pulsa el botón nueva partida:
-        Random aleatorio = new Random();
-        num_aleatorio = aleatorio.nextInt(LIMITE_MAX) + LIMITE_MIN;
-        Log.e(TAG,"Num secreto: "+num_aleatorio);
-        //Inicializo los valores min y max de la partida:
-        partida_max = LIMITE_MAX;
-        partida_min = LIMITE_MIN;
+        juego.iniciarJuego();
         //Llamo a la función que refresca la pantalla:
         refrescarLayout();
 
-        //Pongo intentos a 0 y actualizo la pantalla:
-        num_intentos = 0;
-        tvIntentos.setText(getString(R.string.msg_intentos) + num_intentos);
+        //actualizo la pantalla con los intentos:
+        tvIntentos.setText(getString(R.string.msg_intentos) + juego.getIntentos());
 
         //Limpio el contenido de la caja del jugador y el resultado:
         etNumJugador.setText("");
@@ -180,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
     //Esta función sirve para refrescar los limites en el layout:
     private void refrescarLayout() {
         //Refresco en pantalla los limites:
-        String texto = String.format(getString(R.string.instrucciones),partida_min,partida_max);
+        String texto = String.format(getString(R.string.instrucciones),
+                juego.getPartidaMin(), juego.getPartidaMax());
         tvInstrucciones.setText(texto);
     }
-
 }
