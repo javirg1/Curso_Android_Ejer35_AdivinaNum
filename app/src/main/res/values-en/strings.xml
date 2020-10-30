@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Guess</string>
+    <string name="app_title">Guess number</string>
+    <string name="instrucciones">Guess number between %d and %d:</string>
+    <string name="btn_jugar">Play</string>
+    <string name="btn_nueva_partida">New game</string>
+    <string name="btn_gualapop">Visit us!!</string>
+
+    <string name="msg_acierto">Success! You have obtained %d points</string>
+    <string name="msg_intentos">" Attempts:"</string>
+    <string name="msg_error_numero">Data entered incorrect, please check</string>
+    <string name="msg_numero_no_valido">The number is incorrect, please check the limits</string>
+    <string name="msg_record">Record: %d</string>
+
+    <string name="btn_comenzar">Start</string>
+
+    <string name="msg_splash_cargando">Loading</string>
+    <string name="msg_fallo">Failure!</string>
+</resources>
